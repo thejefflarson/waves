@@ -13,44 +13,23 @@ class Renderer {
       'javascripts/shaders/displacement.fragment.glsl',
       'javascripts/shaders/display.fragment.glsl',
       'javascripts/shaders/display.vertex.glsl',
-      'javascripts/shaders/spectrum.fragment.glsl',
-      'javascripts/shaders/noise.fragment.glsl',
       'javascripts/shaders/plane.vertex.glsl',
       this.go.bind(this)
     );
-    this.noise    = new GL.Texture(detail, detail, {type: this.gl.FLOAT, magFilter: this.gl.NEAREST});
-    this.spectrum = new GL.Texture(detail, detail, {type: this.gl.FLOAT, magFilter: this.gl.NEAREST});
     this.displace = new GL.Texture(detail, detail, {type: this.gl.FLOAT, magFilter: this.gl.NEAREST});
   }
 
   go(shaders) {
-    this.createNoise = new GL.Shader(
+    this.createDisplacement = new GL.Shader(
       shaders['javascripts/shaders/plane.vertex.glsl'],
-      shaders['javascripts/shaders/noise.fragment.glsl']
+      shaders['javascripts/shaders/displacement.fragment.glsl']
     );
-    this.createSpectrum = new GL.Shader(
-      shaders['javascripts/shaders/plane.vertex.glsl'],
-      shaders['javascripts/shaders/spectrum.fragment.glsl']
-    );
-    // this.displacement = new GL.Shader
     this.display = new GL.Shader(
       shaders['javascripts/shaders/display.vertex.glsl'],
       shaders['javascripts/shaders/display.fragment.glsl']
     );
     this.gl.ondraw = this.draw.bind(this);
     this.gl.onupdate = this.update.bind(this);
-
-    this.noise.drawTo(() => {
-      this.createNoise.draw(this.plane);
-    });
-
-    this.spectrum.drawTo(() => {
-      this.noise.bind(0);
-      this.createSpectrum.uniforms({
-        noise: 0
-      }).draw(this.plane);
-      this.noise.unbind();
-    });
 
     this.gl.fullscreen({camera:false});
     this.gl.animate();
@@ -73,6 +52,13 @@ class Renderer {
     gl.translate(0, 0, -5);
     gl.rotate(-45, 1, 0, 0);
     gl.rotate(60, 0, 0, 1);
+
+    this.displace.drawTo(() => {
+      this.createDisplacement.uniforms({
+        time: this.time
+      }).draw(this.plane);
+    });
+
     this.displace.bind(0);
     this.display.uniforms({
       tex: 0
