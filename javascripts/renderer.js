@@ -16,7 +16,7 @@ class Renderer {
       'javascripts/shaders/plane.vertex.glsl',
       this.go.bind(this)
     );
-    this.displace = new GL.Texture(detail, detail, {type: this.gl.FLOAT, magFilter: this.gl.NEAREST});
+    this.displace = new GL.Texture(detail * 2, detail * 2, {type: this.gl.FLOAT, magFilter: this.gl.NEAREST});
   }
 
   go(shaders) {

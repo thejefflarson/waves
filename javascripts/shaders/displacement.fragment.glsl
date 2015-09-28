@@ -3,7 +3,7 @@ uniform float time;
 
 float phillips(const vec2 coord) {
   float rand = fract(sin(dot(coord, vec2(12.9898,78.233))) * 43758.5453);
-  vec2 k = (coord * 2. * 3.14159265359 - 3.);
+  vec2 k = (3.14159265359 * (coord * 2. - 1.));
   float k_len = length(k);
   vec2 k_hat = normalize(k);
   vec2 w = vec2(0.35, 0.56);
@@ -19,6 +19,6 @@ float phillips(const vec2 coord) {
 void main() {
   float p  = phillips(coord.xy);
   float ip = phillips(-1. * coord.xy);
-  float e = time * length(coord.xy);
+  float e = time;
   gl_FragColor = vec4(vec3(p * exp(e) + ip * exp(-1. * e)), 1.);
 }
