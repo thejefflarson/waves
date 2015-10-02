@@ -1,0 +1,2 @@
+http://www.edxgraphics.com/blog/simulating-ocean-waves-with-fft-on-gpu
+https://www.opengl.org/discussion_boards/showthread.php/185826-Realtime-Ocean-rendering-I-m-lost
