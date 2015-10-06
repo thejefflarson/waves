@@ -19,15 +19,19 @@ float tanh(float x) {
   return (e_x - e_ix) / (e_x + e_ix);
 }
 
+float omega(float k) {
+  return sqrt((g * k + 0.074 / p * pow(k, 3.0)) * tanh(k * h));
+}
+
 float jonswap(vec2 wind) {
   float k = length(wind);
-  float omega = sqrt((g * k + 0.074 / p * pow(k, 3.0)) * tanh(k * h));
-  float omega_p = 22.0 * pow(g, 2.0) / (U * F); // peak frequency
-  float sigma = omega <= omega_p ? 0.07 : 0.09;
+  float o = omega(k);
+  float o_p = 22.0 * pow(g, 2.0) / (U * F); // peak frequency
+  float sigma = o <= o_p ? 0.07 : 0.09;
   float alpha = 0.076 * pow(pow(U, 2.0) / (F * g), 0.22);
-  float r = exp(-1.0 * pow((omega - omega_p), 2.0) /
-            (2.0 * pow(sigma, 2.0) * pow(omega_p, 2.0)));
-  float s = alpha * pow(g, 2.0) / pow(omega, 5.0) * exp(-5. / 4. * pow(omega_p / omega, 4.0)) * pow(y, r);
+  float r = exp(-1.0 * pow((o - o_p), 2.0) /
+            (2.0 * pow(sigma, 2.0) * pow(o_p, 2.0)));
+  float s = alpha * pow(g, 2.0) / pow(o, 5.0) * exp(-5. / 4. * pow(o_p / o, 4.0)) * pow(y, r);
   return s;
 }
 
@@ -51,5 +55,5 @@ void main() {
 
 
   }
-  gl_Position = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xy, -jonswap(gl_Vertex.xy), gl_Vertex.w);
+  gl_Position = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xy, jonswap(gl_Vertex.xy), gl_Vertex.w);
 }
