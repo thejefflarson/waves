@@ -1,11 +1,11 @@
 // 'use strict';
 
-const detail = 128;
+const detail = 128 * 2;
 
 function Renderer() {
   this.gl = GL.create({antialias: true});
   this.time = 0;
-  this.mesh = GL.Mesh.plane({ coords: true, detailX: detail, detailY: detail });
+  this.mesh = GL.Mesh.plane({ coords: true, detailX: detail - 1, detailY: detail - 1 });
   this.mesh.computeWireframe();
   load(
     'javascripts/shaders/displacement.fragment.glsl',
@@ -41,13 +41,13 @@ Renderer.prototype = {
     gl.matrixMode(gl.PROJECTION);
     gl.loadIdentity();
     gl.perspective(45, gl.canvas.width / gl.canvas.height, 0.1, 1000);
-    gl.translate(0, 0, -5);
+    gl.translate(0, 0, -2);
     gl.rotate(-45, 1, 0, 0);
     gl.rotate(60, 0, 0, 1);
 
     this.display.uniforms({
       time: this.time
-    }).draw(this.mesh);
+    }).draw(this.mesh, gl.LINES);
   }
 };
 
