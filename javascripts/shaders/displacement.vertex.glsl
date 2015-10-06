@@ -3,9 +3,9 @@ varying float height;
 
 const float g = 9.81;    // gravity m / s ^2
 const float h = 100.0;   // depth of the water
-const float p = 1000.;    // density of water
-const float U = 100.;     // average wind speed
-const float F = 50000.;   // fetch
+const float p = 1000.;   // density of water
+const float U = 100.;    // average wind speed
+const float F = 50000.;  // fetch
 const float y = 3.3;     // gamma for JONSWAP
 const float e = 2.71828; // e
 
@@ -28,7 +28,7 @@ float jonswap(vec2 wind) {
   float r = exp(-1.0 * pow((omega - omega_p), 2.0) /
             (2.0 * pow(sigma, 2.0) * pow(omega_p, 2.0)));
   float s = alpha * pow(g, 2.0) / pow(omega, 5.0) * exp(-5. / 4. * pow(omega_p / omega, 4.0)) * pow(y, r);
-  return k;
+  return s;
 }
 
 
