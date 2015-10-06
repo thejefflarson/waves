@@ -1,22 +1,34 @@
 uniform float time;
 varying float height;
 
-const vec2 K(0.0, 0.5); // wind
-const float g = 9.81;   // gravity m / s ^2
-const float h = 100.0;  // depth of the water
-const float o = 0.074;  // surface tension
-const float p = 1000;   // density of water
-const float U = 100;    // average wind speed
+const float g = 9.81;    // gravity m / s ^2
+const float h = 100.0;   // depth of the water
+const float p = 1000.;    // density of water
+const float U = 100.;     // average wind speed
+const float F = 50000.;   // fetch
+const float y = 3.3;     // gamma for JONSWAP
+const float e = 2.71828; // e
 
 float rand(vec2 co){
   return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
 }
 
-float jonswap(float freq) {
-  float k = length(K);
-  float omega = sqrt((g * k + o / p * pow(k, 3.0)) * tanh(k * h));
-  float omega_p =
-  return 1.;
+float tanh(float x) {
+  float e_x = pow(e, x);
+  float e_ix = pow(e, -x);
+  return (e_x - e_ix) / (e_x + e_ix);
+}
+
+float jonswap(vec2 wind) {
+  float k = length(wind);
+  float omega = sqrt((g * k + 0.074 / p * pow(k, 3.0)) * tanh(k * h));
+  float omega_p = 22.0 * pow(g, 2.0) / (U * F); // peak frequency
+  float sigma = omega <= omega_p ? 0.07 : 0.09;
+  float alpha = 0.076 * pow(pow(U, 2.0) / (F * g), 0.22);
+  float r = exp(-1.0 * pow((omega - omega_p), 2.0) /
+            (2.0 * pow(sigma, 2.0) * pow(omega_p, 2.0)));
+  float s = alpha * pow(g, 2.0) / pow(omega, 5.0) * exp(-5. / 4. * pow(omega_p / omega, 4.0)) * pow(y, r);
+  return k;
 }
 
 
@@ -39,5 +51,5 @@ void main() {
 
 
   }
-  gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+  gl_Position = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xy, -jonswap(gl_Vertex.xy), gl_Vertex.w);
 }

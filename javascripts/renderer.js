@@ -41,7 +41,7 @@ Renderer.prototype = {
     gl.matrixMode(gl.PROJECTION);
     gl.loadIdentity();
     gl.perspective(45, gl.canvas.width / gl.canvas.height, 0.1, 1000);
-    gl.translate(0, 0, -2);
+    gl.translate(0, 0, -5);
     gl.rotate(-45, 1, 0, 0);
     gl.rotate(60, 0, 0, 1);
 
