@@ -33,7 +33,6 @@ Renderer.prototype = {
 
   draw : function() {
     var gl = this.gl;
-    gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
     gl.enable(gl.BLEND);
     gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
@@ -47,7 +46,7 @@ Renderer.prototype = {
 
     this.display.uniforms({
       time: this.time
-    }).draw(this.mesh, gl.LINES);
+    }).draw(this.mesh);
   }
 };
 
