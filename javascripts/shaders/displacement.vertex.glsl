@@ -2,7 +2,7 @@ uniform float time;
 varying float height;
 
 const float g  = 9.81;    // gravity m / s ^2
-const float h  = 10.;    // depth of the water
+const float h  = 50.;    // depth of the water
 const float p  = 1000.;   // density of water
 const float F  = 50.;  // fetch
 const float y  = 3.3;     // gamma for JONSWAP
@@ -56,24 +56,26 @@ float tma(vec2 K, vec2 wind, float depth) {
 }
 
 void main() {
-  vec2 wind = vec2(0.5, 40.0);
-  const int numWaves = 10;
-  float seed = rand(vec2(gl_Vertex.xy));
+  vec2 wind = vec2(20.5, 100.0);
+  const int numWaves = 40;
+  float seed = rand(gl_Vertex.xy);
   float z = 0.;
   for(int i = 0; i < numWaves; i++) {
     vec2 K;
+    float theta = atan(wind.y / wind.x);
     seed = rand(seed);
     K.x = seed;
     seed = rand(seed);
     K.y = seed;
     float x = K.x;
     // guassian transform
-    K.x = sqrt(-2. * log(K.x) / log(e) * cos(2. * pi * K.y));
-    K.y = sqrt(-2. * log(x) / log(e) * sin(2. * pi * K.y));
+    K.x = sqrt(-2. * log(K.x) / log(e) * cos(2. * pi * K.y)) * cos(theta);
+    K.y = sqrt(-2. * log(x) / log(e) * sin(2. * pi * K.y)) * sin(theta);
     float a = sqrt(tma(K, wind, h)) / 2.;
     float k = length(K);
-    z += a * cos(omega(k, h) * time - dot(K, gl_Vertex.xy * 20.));
+    z += a * cos(omega(k, h) * time - dot(K, gl_Vertex.xy * 40.));
   }
-  height = z / float(numWaves) * 200.;
+  z = z / float(numWaves);
+  height = abs(z);
   gl_Position = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xy, z, gl_Vertex.w);
 }
