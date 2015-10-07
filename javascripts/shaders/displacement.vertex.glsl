@@ -4,7 +4,6 @@ varying float height;
 const float g  = 9.81;    // gravity m / s ^2
 const float h  = 10.;    // depth of the water
 const float p  = 1000.;   // density of water
-const float U  = 100.;    // average wind speed
 const float F  = 50.;  // fetch
 const float y  = 3.3;     // gamma for JONSWAP
 const float e  = 2.71828; // e
@@ -48,7 +47,7 @@ float omega(float k, float depth) {
 // from http://www.dtic.mil/dtic/tr/fulltext/u2/a157975.pdf via Horvath
 float tma(vec2 K, vec2 wind, float depth) {
   float k = length(K); // wave vector
-  float U = length(U); // wind speed
+  float U = length(wind); // wind speed
   float w = omega(k, depth);
   float theta = atan(wind.y / wind.x);
   // we use tessendorf's spreading function because it is easier
@@ -57,7 +56,7 @@ float tma(vec2 K, vec2 wind, float depth) {
 }
 
 void main() {
-  vec2 wind = vec2(3.5, 100.0);
+  vec2 wind = vec2(0.5, 40.0);
   const int numWaves = 10;
   float seed = rand(vec2(gl_Vertex.xy));
   float z = 0.;
@@ -72,10 +71,9 @@ void main() {
     K.x = sqrt(-2. * log(K.x) / log(e) * cos(2. * pi * K.y));
     K.y = sqrt(-2. * log(x) / log(e) * sin(2. * pi * K.y));
     float a = sqrt(tma(K, wind, h)) / 2.;
-    float theta = atan(wind.y / wind.x);
     float k = length(K);
     z += a * cos(omega(k, h) * time - dot(K, gl_Vertex.xy * 20.));
   }
-  height = z / float(numWaves) * 100.;
+  height = z / float(numWaves) * 200.;
   gl_Position = gl_ModelViewProjectionMatrix * vec4(gl_Vertex.xy, z, gl_Vertex.w);
 }
