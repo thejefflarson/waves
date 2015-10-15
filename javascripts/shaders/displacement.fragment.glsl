@@ -2,9 +2,9 @@ uniform vec2 wind;
 uniform float depth;
 uniform float res;
 uniform float size;
+varying vec2 coord;
 
 const float g  = 9.81;    // gravity m / s ^2
-const float h  = 50.;     // depth of the water
 const float p  = 1000.;   // density of water
 const float F  = 50.;     // fetch
 const float y  = 3.3;     // gamma for JONSWAP
@@ -50,14 +50,15 @@ float tma(vec2 K, vec2 wind, float depth) {
   float U = length(wind); // wind speed
   float w = omega(k, depth);
   float theta = atan(wind.y / wind.x);
-  // we use tessendorf's spreading function because it is easier
+  // we use tessendorfs spreading function because it is easier
   float d = theta > -pi / 2. && theta < pi / 2. ? 2. / pi * pow(cos(theta), 2.) : 0.;
   return jonswap(w, U) * kitai(w, depth) * d;
 }
 
 void main(){
   vec2 c = gl_FragCoord.xy - 0.5;
-  vec2 K = 2.0 * pi * vec2(c.x < res * 0.5 ? c.x : c.x - res, c.y < res * 0.5 ? c.y : c.y - res) / size;
+  vec2 K = 2. * pi * vec2(c.x < res * 0.5 ? c.x : c.x - res, c.y < res * 0.5 ? c.y : c.y - res) / size;
 
-  gl_FragColor = vec4(tma(K, wind, depth), 0, 0, 1.0);
+  gl_FragColor = vec4(tma(K, wind, depth), 0., 0., 1.0);
 }
+

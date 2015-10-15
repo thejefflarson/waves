@@ -1,4 +1,4 @@
-const detail = 256;
+const detail = 512;
 
 function Renderer() {
   this.gl = GL.create({antialias: true});
@@ -8,16 +8,21 @@ function Renderer() {
   this.displacement = new GL.Texture(detail, detail, {type: this.gl.FLOAT, minFilter: this.gl.NEAREST, magFilter: this.gl.NEAREST });
   load(
     'javascripts/shaders/displacement.fragment.glsl',
-    'javascripts/shaders/displacement.vertex.glsl',
+    'javascripts/shaders/fullscreen.vertex.glsl',
+    'javascripts/shaders/peek.fragment.glsl',
     this.go.bind(this)
   );
 }
 
 Renderer.prototype = {
   go : function(shaders) {
-    this.display = new GL.Shader(
-      shaders['javascripts/shaders/displacement.vertex.glsl'],
+    this.displace = new GL.Shader(
+      shaders['javascripts/shaders/fullscreen.vertex.glsl'],
       shaders['javascripts/shaders/displacement.fragment.glsl']
+    );
+    this.peek = new GL.Shader(
+      shaders['javascripts/shaders/fullscreen.vertex.glsl'],
+      shaders['javascripts/shaders/peek.fragment.glsl']
     );
     this.gl.ondraw = this.draw.bind(this);
     this.gl.onupdate = this.update.bind(this);
@@ -41,13 +46,24 @@ Renderer.prototype = {
     // gl.rotate(-45, 1, 0, 0);
     // gl.rotate(60, 0, 0, 1);
 
-    this.display.uniforms({
-      time: this.time,
-      size: 250,
-      res: detail,
-      depth: 10,
-      wind: [100.0, 100.0]
+    this.displacement.drawTo(function(){
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.loadIdentity();
+      this.displace.uniforms({
+        time: this.time,
+        size: 250,
+        res: detail,
+        depth: 100,
+        wind: [50.0, 10.0]
+      }).draw(this.mesh);
+    }.bind(this));
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    this.displacement.bind(0);
+    this.peek.uniforms({
+      color: 0
     }).draw(this.mesh);
+    this.displacement.unbind();
   }
 };
 
