@@ -2,7 +2,7 @@ uniform vec2 wind;
 uniform float depth;
 uniform float res;
 uniform float size;
-varying vec2 coord;
+uniform float time;
 
 const float g  = 9.81;    // gravity m / s ^2
 const float p  = 1000.;   // density of water
@@ -51,14 +51,42 @@ float tma(vec2 K, vec2 wind, float depth) {
   float w = omega(k, depth);
   float theta = atan(wind.y / wind.x);
   // we use tessendorfs spreading function because it is easier
-  float d = theta > -pi / 2. && theta < pi / 2. ? 2. / pi * pow(cos(theta), 2.) : 0.;
-  return jonswap(w, U) * kitai(w, depth) * d;
+  float d = theta > (-pi / 2.) && theta < (pi / 2.) ? 2. / pi * pow(cos(theta), 2.) : 0.;
+  return jonswap(w, U) * kitai(w, depth);// * d;
 }
 
 void main(){
-  vec2 c = gl_FragCoord.xy - 0.5;
-  vec2 K = 2. * pi * vec2(c.x < res * 0.5 ? c.x : c.x - res, c.y < res * 0.5 ? c.y : c.y - res) / size;
+  vec2 c = gl_FragCoord.xy / res * size;
+  const int numWaves = 60;
+  float seed = rand(c.xy);
+  float z = 0.;
+  for(int i = 0; i < numWaves; i++) {
+    vec2 K;
+    float theta = atan(wind.y / wind.x);
+    seed = rand(seed);
+    K.x = seed;
+    seed = rand(seed);
+    K.y = seed;
 
-  gl_FragColor = vec4(tma(K, wind, depth), 0., 0., 1.0);
+    // box muller
+    vec2 T = K;
+    T.x = sqrt(-2. * log(K.x)) * cos(2. * pi * K.y);
+    T.y = sqrt(-2. * log(K.x)) * sin(2. * pi * K.y);
+    K = T;
+
+    // rotate
+    T = K;
+    T.x = cos(theta) * K.x - sin(theta) * K.y;
+    T.y = sin(theta) * K.x + cos(theta) * K.y;
+    K = T;
+    // todo damping from neyret page 5
+    float a = sqrt(tma(K, wind, depth)) / 2.;
+    float k = length(K);
+    float arg = omega(k, depth) * time - dot(K, c.xy);
+    z    += a * cos(arg);
+    c.xy += K / k * a * sin(arg);
+  }
+
+  gl_FragColor = vec4(0., z, 0., 1.0);
 }
 
