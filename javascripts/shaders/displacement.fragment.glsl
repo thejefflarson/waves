@@ -64,14 +64,11 @@ void main(){
     vec2 K;
     float theta = atan(wind.y / wind.x);
     seed = rand(seed);
-    K.x = seed;
-    seed = rand(seed);
-    K.y = seed;
 
     // box muller
     vec2 T = K;
-    T.x = sqrt(-2. * log(K.x)) * cos(2. * pi * K.y);
-    T.y = sqrt(-2. * log(K.x)) * sin(2. * pi * K.y);
+    T.x = sqrt(-2. * log(seed)) * cos(2. * pi * seed);
+    T.y = sqrt(-2. * log(seed)) * sin(2. * pi * seed);
     K = T;
 
     // rotate
@@ -87,6 +84,6 @@ void main(){
     c.xy += K / k * a * sin(arg);
   }
 
-  gl_FragColor = vec4(0., z, 0., 1.0);
+  gl_FragColor = vec4(0.,0., z, 1.0);
 }
 

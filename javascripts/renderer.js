@@ -46,7 +46,7 @@ Renderer.prototype = {
     // gl.rotate(-45, 1, 0, 0);
     // gl.rotate(60, 0, 0, 1);
 
-    var wind = [-10.0, 20.0];
+    var wind = [20.0, 20.0];
     // var a = [];
     // a[0] = Math.cos(this.time) * wind[0] - Math.sin(this.time) * wind[1];
     // a[1] = Math.sin(this.time) * wind[0] + Math.cos(this.time) * wind[1];
@@ -57,7 +57,7 @@ Renderer.prototype = {
       gl.loadIdentity();
       this.displace.uniforms({
         time: this.time,
-        size: 50,
+        size: 100,
         res: detail,
         depth: 100,
         wind: wind
