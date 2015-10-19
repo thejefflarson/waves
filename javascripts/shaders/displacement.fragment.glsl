@@ -56,10 +56,10 @@ float tma(vec2 K, vec2 wind, float depth) {
 }
 
 void main(){
-  vec2 c = gl_FragCoord.xy / res * size;
+  vec3 c = vec3(gl_FragCoord.xy / res * size, 0.);
   const int numWaves = 60;
   float seed = rand(c.xy);
-  float z = 0.;
+
   for(int i = 0; i < numWaves; i++) {
     vec2 K;
     float theta = atan(wind.y / wind.x);
@@ -80,10 +80,14 @@ void main(){
     float a = sqrt(tma(K, wind, depth)) / 2.;
     float k = length(K);
     float arg = omega(k, depth) * time - dot(K, c.xy);
-    z    += a * cos(arg);
-    c.xy += K / k * a * sin(arg);
+    float n_min = 1.;
+    float n_max = 3.1;
+    float filter = g / (omega(k, depth) * omega(k, depth)) * size / res;
+    float wp = 1.; smoothstep(n_min, n_max, filter);
+    c.z  += wp * a * cos(arg);
+    c.xy += wp * K / k * a * sin(arg);
   }
-
-  gl_FragColor = vec4(0.,0., z, 1.0);
+  c = c / float(numWaves);
+  gl_FragColor = vec4(c.xyz, 1.0);
 }
 
