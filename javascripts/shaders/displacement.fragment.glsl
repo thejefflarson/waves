@@ -1,93 +1,49 @@
 uniform vec2 wind;
-uniform float depth;
 uniform float res;
 uniform float size;
 uniform float time;
+uniform sampler2D rnd;
+varying vec2 coord;
 
 const float g  = 9.81;    // gravity m / s ^2
-const float p  = 1000.;   // density of water
-const float F  = 50.;     // fetch
-const float y  = 3.3;     // gamma for JONSWAP
-const float e  = 2.71828; // e
-const float pi = 3.14159; // pi, du
+const float e  = 2.71828;
+const float pi = 3.14159; // pi, duh
+const float depth = 100.;
+const int numWaves = <%= numWaves %>;
 
-float rand(vec2 co){
-  return fract(sin(dot(co.xy ,vec2(12.9898,78.233))) * 43758.5453);
-}
-
-float rand(float num) {
-  return rand(vec2(num));
+float rand(int x) {
+  return texture2D(rnd, vec2((float(x) + 0.5) / float(numWaves), 1.)).r;
 }
 
 float tanh(float x) {
   return (1.0 - exp(-2.0 * x)) / (1.0 + exp(-2.0 * x));
 }
 
-// corrects for depth of the ocean
-float kitai(float w, float depth) {
-  float w_h = w * sqrt(depth / g);
-  return smoothstep(0., 2.2, w_h);
-}
-
-// frequency of ocean waves
-float jonswap(float w, float U) {
-  float w_p = 22. * pow(g, 2.) / (U * F); // peak frequency
-  float sigma = w <= w_p ? 0.07 : 0.09;
-  float alpha = 0.076 * pow(pow(U, 2.) / (F * g), 0.22);
-  float r = exp(-1. * pow((w - w_p), 2.) /
-            (2. * pow(sigma, 2.) * pow(w_p, 2.)));
-  float s = alpha * pow(g, 2.) / pow(w, 5.) * exp(-5. / 4. * pow(w_p / w, 4.)) * pow(y, r);
-  return s;
-}
-
-float omega(float k, float depth) {
-  return sqrt((g * k + 0.074 / p * pow(k, 3.)) * tanh(k * depth));
-}
-
-// from http://www.dtic.mil/dtic/tr/fulltext/u2/a157975.pdf via Horvath
-float tma(vec2 K, vec2 wind, float depth) {
-  float k = length(K); // wave vector
-  float U = length(wind); // wind speed
-  float w = omega(k, depth);
-  float theta = atan(wind.y / wind.x);
-  // we use tessendorfs spreading function because it is easier
-  float d = theta > (-pi / 2.) && theta < (pi / 2.) ? 2. / pi * pow(cos(theta), 2.) : 0.;
-  return jonswap(w, U) * kitai(w, depth);// * d;
-}
-
 void main(){
-  vec3 c = vec3(gl_FragCoord.xy / res * size, 0.);
-  const int numWaves = 60;
-  float seed = rand(c.xy);
+  vec2 c = (gl_FragCoord.xy / res - 0.5) * size;
+  vec4 b;
+
+  float mn = log(0.02) / log(2.0);
+  float mx = log(length(wind)) / log(2.0);
+  float wtheta = atan(wind.x, wind.y);
+  mat2 windRot = mat2(cos(wtheta), sin(wtheta), -sin(wtheta), cos(wtheta));
 
   for(int i = 0; i < numWaves; i++) {
-    vec2 K;
-    float theta = atan(wind.y / wind.x);
-    seed = rand(seed);
-
-    // box muller
-    vec2 T = K;
-    T.x = sqrt(-2. * log(seed)) * cos(2. * pi * seed);
-    T.y = sqrt(-2. * log(seed)) * sin(2. * pi * seed);
-    K = T;
-
-    // rotate
-    T = K;
-    T.x = cos(theta) * K.x - sin(theta) * K.y;
-    T.y = sin(theta) * K.x + cos(theta) * K.y;
-    K = T;
-    // todo damping from neyret page 5
-    float a = sqrt(tma(K, wind, depth)) / 2.;
-    float k = length(K);
-    float arg = omega(k, depth) * time - dot(K, c.xy);
-    float n_min = 1.;
-    float n_max = 3.1;
-    float filter = g / (omega(k, depth) * omega(k, depth)) * size / res;
-    float wp = 1.; smoothstep(n_min, n_max, filter);
-    c.z  += wp * a * cos(arg);
-    c.xy += wp * K / k * a * sin(arg);
+    float x = float(i) / (float(numWaves) - 1.);
+    float lambda = pow(2.0, (1.0 - x) * mn + x * mx);
+    float theta  = rand(i);
+    float knorm  = 2. * pi / lambda;
+    float omega  = sqrt(g * knorm * tanh(knorm * depth));
+    vec2 K = vec2(knorm * cos(theta), knorm * sin(theta));
+    float s = 0.0081 * g * g / pow(omega, 5.) * exp(-1. * 5. / 4. * pow((0.855 * g) / length(wind) / omega, 4.));
+    float a = sqrt(s);
+    // filter out small wavelengths
+    float wp = smoothstep(0.1, 3., 2.0 * pi * g / omega * omega * res / size);
+    float arg = omega * time - dot(K, windRot * c.xy);
+    b.z  += wp * a * cos(arg);
+    b.xy += wp * a * normalize(K) * sin(arg);
   }
-  c = c / float(numWaves);
-  gl_FragColor = vec4(c.xyz, 1.0);
+
+  gl_FragColor = b;
 }
 

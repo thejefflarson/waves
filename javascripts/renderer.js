@@ -1,10 +1,13 @@
-const detail = 256;
+const detail = 512;
+const size = 100;
 
 function Renderer() {
   this.gl = GL.create({antialias: true});
   this.time = 0;
-  this.mesh = GL.Mesh.plane({ coords: true, detailX: detail/2 - 1, detailY: detail/2 - 1 });
+  this.mesh = GL.Mesh.plane({ coords: true, detailX: detail/4 - 1, detailY: detail/4 - 1 });
+  this.mesh.transform(GL.Matrix.scale(size, size, 0));
   this.mesh.computeWireframe();
+  this.numWaves = 200;
   this.displacement = new GL.Texture(detail, detail, { type: this.gl.FLOAT });
   load(
     'javascripts/shaders/displacement.fragment.glsl',
@@ -16,15 +19,48 @@ function Renderer() {
 }
 
 Renderer.prototype = {
+  gauss : function(){
+    var u1, u2, v1, v2, s;
+    var mean = 0.0;
+    var stdev = 1.;
+    if (this.v2 === null) {
+      do {
+        u1 = Math.random();
+        u2 = Math.random();
+
+        v1 = 2 * u1 - 1;
+        v2 = 2 * u2 - 1;
+        s = v1 * v1 + v2 * v2;
+      } while (s === 0 || s >= 1);
+
+      this.v2 = v2 * Math.sqrt(-2 * Math.log(s) / s);
+      return stdev * v1 * Math.sqrt(-2 * Math.log(s) / s) + mean;
+    }
+
+    v2 = this.v2;
+    this.v2 = null;
+    return stdev * v2 + mean;
+  },
+  v2 : null,
+
   go : function(shaders) {
     this.displace = new GL.Shader(
       shaders['javascripts/shaders/fullscreen.vertex.glsl'],
-      shaders['javascripts/shaders/displacement.fragment.glsl']
+      shaders['javascripts/shaders/displacement.fragment.glsl'].replace('<%= numWaves %>', this.numWaves)
     );
     this.peek = new GL.Shader(
       shaders['javascripts/shaders/peek.vertex.glsl'],
       shaders['javascripts/shaders/peek.fragment.glsl']
     );
+
+    // really random values
+    var data = new Float32Array(this.numWaves * 3);
+    for(var i = 0; i < this.numWaves * 3; i += 3)
+      data[i] = this.gauss();
+
+    this.rand = new GL.Texture(this.numWaves, 1, {format: this.gl.RGB, type: this.gl.FLOAT});
+    this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.rand.format, this.numWaves, 1, 0, this.rand.format, this.rand.type, data);
+
     this.gl.ondraw = this.draw.bind(this);
     this.gl.onupdate = this.update.bind(this);
 
@@ -33,50 +69,51 @@ Renderer.prototype = {
   },
 
   update : function(seconds) {
-    this.time += seconds / 2;
+    this.time += seconds;
   },
 
   draw : function() {
     var gl = this.gl;
     gl.enable(gl.DEPTH_TEST);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    // gl.matrixMode(gl.PROJECTION);
-    // gl.loadIdentity();
-    // gl.perspective(45, gl.canvas.width / gl.canvas.height, 0.1, 1000);
-    // gl.translate(0, 0, -5);
-    // gl.rotate(-45, 1, 0, 0);
-    // gl.rotate(60, 0, 0, 1);
 
-    var wind = [20.0, 200.0];
+    var wind = [30.0, 30.0];
     // var a = [];
     // a[0] = Math.cos(this.time) * wind[0] - Math.sin(this.time) * wind[1];
     // a[1] = Math.sin(this.time) * wind[0] + Math.cos(this.time) * wind[1];
     // wind = a;
 
     this.displacement.drawTo(function(){
+      gl.viewport(0, 0, detail, detail);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.loadIdentity();
+      this.rand.bind(0);
       this.displace.uniforms({
         time: this.time,
-        size: 100,
+        size: size,
         res: detail,
-        depth: 100,
-        wind: wind
+        wind: wind,
+        rnd: 0
       }).draw(this.mesh);
+      this.rand.unbind(0);
     }.bind(this));
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-
     gl.matrixMode(gl.PROJECTION);
     gl.loadIdentity();
-    gl.perspective(45, gl.canvas.width / gl.canvas.height, 0.1, 1000);
-    gl.translate(0, 0, -5);
+    gl.perspective(45, gl.canvas.width / gl.canvas.height, 1, 900000);
+
+    gl.matrixMode(gl.MODELVIEW);
+    gl.loadIdentity();
+    gl.translate(0, 0, -5 * size);
     gl.rotate(-45, 1, 0, 0);
     gl.rotate(60, 0, 0, 1);
 
     this.displacement.bind(0);
     this.peek.uniforms({
-      color: 0
+      color: 0,
+      size: size,
+      res: detail
     }).draw(this.mesh);
     this.displacement.unbind();
   }
