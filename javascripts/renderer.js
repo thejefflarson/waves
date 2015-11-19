@@ -22,7 +22,7 @@ Renderer.prototype = {
   gauss : function(){
     var u1, u2, v1, v2, s;
     var mean = 0.0;
-    var stdev = 1.;
+    var stdev = 1.0;
     if (this.v2 === null) {
       do {
         u1 = Math.random();

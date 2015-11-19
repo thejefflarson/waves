@@ -6,9 +6,9 @@ uniform sampler2D rnd;
 varying vec2 coord;
 
 const float g  = 9.81;    // gravity m / s ^2
-const float e  = 2.71828;
+const float e  = 2.71828; // e, duh
 const float pi = 3.14159; // pi, duh
-const float depth = 100.;
+const float depth = 10.;
 const int numWaves = <%= numWaves %>;
 
 float rand(int x) {
