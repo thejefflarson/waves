@@ -1,5 +1,5 @@
 const detail = 512;
-const size = 100;
+const size = 300;
 
 function Renderer() {
   this.gl = GL.create({antialias: true});
@@ -7,7 +7,7 @@ function Renderer() {
   this.mesh = GL.Mesh.plane({ coords: true, detailX: detail/4 - 1, detailY: detail/4 - 1 });
   this.mesh.transform(GL.Matrix.scale(size, size, 0));
   this.mesh.computeWireframe();
-  this.numWaves = 100;
+  this.numWaves = 130;
   this.displacement = new GL.Texture(detail, detail, { type: this.gl.FLOAT });
   load(
     'javascripts/shaders/displacement.fragment.glsl',
@@ -77,7 +77,7 @@ Renderer.prototype = {
     gl.enable(gl.DEPTH_TEST);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    var wind = [30.0, 30.0];
+    var wind = [20.0, 2.0];
 
     this.displacement.drawTo(function(){
       gl.viewport(0, 0, detail, detail);

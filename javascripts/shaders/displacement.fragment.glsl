@@ -23,7 +23,7 @@ void main(){
   vec2 c = (gl_FragCoord.xy / res - 0.5) * size;
   vec4 b;
 
-  float mn = log(1.) / log(2.0);
+  float mn = log(0.5) / log(2.0);
   float mx = log(length(wind)) / log(2.0);
   float wtheta = atan(wind.x, wind.y);
   mat2 windRot = mat2(cos(wtheta), sin(wtheta), -sin(wtheta), cos(wtheta));
