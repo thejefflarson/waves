@@ -1,5 +1,5 @@
 const detail = 512;
-const size = 500;
+const size = 100;
 
 function Renderer() {
   this.gl = GL.create({antialias: true});
@@ -22,7 +22,7 @@ Renderer.prototype = {
   gauss : function(){
     var u1, u2, v1, v2, s;
     var mean = 0.0;
-    var stdev = 0.75;
+    var stdev = 0.50;
     if (this.v2 === null) {
       do {
         u1 = Math.random();

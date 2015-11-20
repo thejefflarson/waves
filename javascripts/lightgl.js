@@ -1815,9 +1815,9 @@ Texture.prototype = {
     }
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.id, 0);
     gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, renderbuffer);
-    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) {
-      throw new Error('Rendering to this texture is not supported (incomplete framebuffer)');
-    }
+    // if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) != gl.FRAMEBUFFER_COMPLETE) {
+    //   throw new Error('Rendering to this texture is not supported (incomplete framebuffer)');
+    // }
     gl.viewport(0, 0, this.width, this.height);
 
     callback();
