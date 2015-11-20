@@ -1,13 +1,13 @@
 const detail = 512;
-const size = 100;
+const size = 500;
 
 function Renderer() {
   this.gl = GL.create({antialias: true});
-  this.time = 0;
+  this.time = 100;
   this.mesh = GL.Mesh.plane({ coords: true, detailX: detail/4 - 1, detailY: detail/4 - 1 });
   this.mesh.transform(GL.Matrix.scale(size, size, 0));
   this.mesh.computeWireframe();
-  this.numWaves = 200;
+  this.numWaves = 100;
   this.displacement = new GL.Texture(detail, detail, { type: this.gl.FLOAT });
   load(
     'javascripts/shaders/displacement.fragment.glsl',
@@ -22,7 +22,7 @@ Renderer.prototype = {
   gauss : function(){
     var u1, u2, v1, v2, s;
     var mean = 0.0;
-    var stdev = 1.0;
+    var stdev = 0.75;
     if (this.v2 === null) {
       do {
         u1 = Math.random();
@@ -64,7 +64,7 @@ Renderer.prototype = {
     this.gl.ondraw = this.draw.bind(this);
     this.gl.onupdate = this.update.bind(this);
 
-    this.gl.fullscreen({camera:false});
+    this.gl.fullscreen({camera:false, antialias:true});
     this.gl.animate();
   },
 
@@ -78,10 +78,6 @@ Renderer.prototype = {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     var wind = [30.0, 30.0];
-    // var a = [];
-    // a[0] = Math.cos(this.time) * wind[0] - Math.sin(this.time) * wind[1];
-    // a[1] = Math.sin(this.time) * wind[0] + Math.cos(this.time) * wind[1];
-    // wind = a;
 
     this.displacement.drawTo(function(){
       gl.viewport(0, 0, detail, detail);
