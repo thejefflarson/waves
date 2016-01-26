@@ -1,5 +1,5 @@
 const detail = 512;
-const size = 300;
+const size = 500;
 
 function Renderer() {
   this.gl = GL.create({antialias: true});
@@ -7,26 +7,32 @@ function Renderer() {
   this.mesh = GL.Mesh.plane({ coords: true, detailX: detail/4 - 1, detailY: detail/4 - 1 });
   this.mesh.transform(GL.Matrix.scale(size, size, 0));
   this.mesh.computeWireframe();
-  this.numWaves = 130;
-  this.displacement = new GL.Texture(detail, detail, { type: this.gl.FLOAT });
-  load(
-    'javascripts/shaders/displacement.fragment.glsl',
-    'javascripts/shaders/fullscreen.vertex.glsl',
-    'javascripts/shaders/peek.fragment.glsl',
-    'javascripts/shaders/peek.vertex.glsl',
-    this.go.bind(this)
-  );
+  this.numWaves = 100;
+  this.displacement = new GL.Texture(detail, detail, { type: this.gl.HALF_FLOAT_OES });
+  var height = new Image();
+  height.onload = function(){
+    this.height = GL.Texture.fromImage(height);
+    load(
+      'javascripts/shaders/displacement.fragment.glsl',
+      'javascripts/shaders/fullscreen.vertex.glsl',
+      'javascripts/shaders/peek.fragment.glsl',
+      'javascripts/shaders/peek.vertex.glsl',
+      this.go.bind(this)
+    );
+  }.bind(this);
+  height.src = './times-out__10.png';
 }
 
 Renderer.prototype = {
   gauss : function(){
     var u1, u2, v1, v2, s;
     var mean = 0.0;
-    var stdev = 0.50;
+    var stdev = 0.25;
     if (this.v2 === null) {
       do {
-        u1 = Math.random();
-        u2 = Math.random();
+        var array = new Uint32Array(1);
+        u1 = crypto.getRandomValues(array)[0] / 4294967296.0;
+        u2 = crypto.getRandomValues(array)[0] / 4294967296.0;
 
         v1 = 2 * u1 - 1;
         v2 = 2 * u2 - 1;
@@ -57,7 +63,7 @@ Renderer.prototype = {
     var data = new Float32Array(this.numWaves * 3);
     for(var i = 0; i < this.numWaves * 3; i += 3)
       data[i] = this.gauss();
-
+    // console.log(data);
     this.rand = new GL.Texture(this.numWaves, 1, {format: this.gl.RGB, type: this.gl.FLOAT});
     this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.rand.format, this.numWaves, 1, 0, this.rand.format, this.rand.type, data);
 
@@ -77,20 +83,20 @@ Renderer.prototype = {
     gl.enable(gl.DEPTH_TEST);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    var wind = [20.0, 2.0];
-
     this.displacement.drawTo(function(){
       gl.viewport(0, 0, detail, detail);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.loadIdentity();
       this.rand.bind(0);
+      this.height.bind(1);
       this.displace.uniforms({
+        height: 1,
         time: this.time,
         size: size,
         res: detail,
-        wind: wind,
         rnd: 0
       }).draw(this.mesh);
+      this.height.unbind(1);
       this.rand.unbind(0);
     }.bind(this));
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
