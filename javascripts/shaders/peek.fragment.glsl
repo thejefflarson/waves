@@ -63,7 +63,7 @@ void main(){
   vec3 sky = fresnel * skycolor;
 
   vec3 water = (1.0 - fresnel) * skycolor * oceancolor * diffuse;
-  vec3 color = sky + water;
+  vec3 color2 = sky + water;
 
-  gl_FragColor = vec4(hdr(color, 0.03) + crest()*5., 1.);
+  gl_FragColor = vec4(hdr(color2, 0.05) + crest() / 2., 1.);
 }

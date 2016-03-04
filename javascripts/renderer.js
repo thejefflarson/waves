@@ -1,5 +1,5 @@
 const detail = 512;
-const size = 500;
+const size = 150;
 
 function Renderer() {
   this.gl = GL.create({antialias: true});
@@ -7,27 +7,22 @@ function Renderer() {
   this.mesh = GL.Mesh.plane({ coords: true, detailX: detail/4 - 1, detailY: detail/4 - 1 });
   this.mesh.transform(GL.Matrix.scale(size, size, 0));
   this.mesh.computeWireframe();
-  this.numWaves = 100;
+  this.numWaves = 200;
   this.displacement = new GL.Texture(detail, detail, { type: this.gl.HALF_FLOAT_OES });
-  var height = new Image();
-  height.onload = function(){
-    this.height = GL.Texture.fromImage(height);
-    load(
-      'javascripts/shaders/displacement.fragment.glsl',
-      'javascripts/shaders/fullscreen.vertex.glsl',
-      'javascripts/shaders/peek.fragment.glsl',
-      'javascripts/shaders/peek.vertex.glsl',
-      this.go.bind(this)
-    );
-  }.bind(this);
-  height.src = './times-out__10.png';
+  load(
+    'javascripts/shaders/displacement.fragment.glsl',
+    'javascripts/shaders/fullscreen.vertex.glsl',
+    'javascripts/shaders/peek.fragment.glsl',
+    'javascripts/shaders/peek.vertex.glsl',
+    this.go.bind(this)
+  );
 }
 
 Renderer.prototype = {
   gauss : function(){
     var u1, u2, v1, v2, s;
     var mean = 0.0;
-    var stdev = 0.25;
+    var stdev = 0.5;
     if (this.v2 === null) {
       do {
         var array = new Uint32Array(1);
@@ -88,15 +83,12 @@ Renderer.prototype = {
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.loadIdentity();
       this.rand.bind(0);
-      this.height.bind(1);
-      this.displace.uniforms({
-        height: 1,
+     this.displace.uniforms({
         time: this.time,
         size: size,
         res: detail,
         rnd: 0
       }).draw(this.mesh);
-      this.height.unbind(1);
       this.rand.unbind(0);
     }.bind(this));
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
