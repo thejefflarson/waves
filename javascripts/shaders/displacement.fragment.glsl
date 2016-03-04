@@ -24,7 +24,7 @@ void main(){
   d.y += 0.5;
   d.x += 0.5;
 
-  vec2 wind = vec2(-150., 0.);
+  vec2 wind = vec2(-100., 0.);
   // wind = vec2(-wind.y, wind.x);
   vec4 b = vec4(0.);
 
